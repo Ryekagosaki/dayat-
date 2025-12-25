@@ -1,0 +1,238 @@
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Pacifico', cursive;
+            background: radial-gradient(circle at center, #2b001f 0%, #1a0014 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        /* Container Utama */
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* Styling Teks Pesan */
+        .message-wrapper {
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            width: 100%;
+        }
+
+        .text-msg {
+            font-size: 3.5rem;
+            color: #ffb7c5;
+            text-shadow: 0 0 15px rgba(255, 64, 129, 0.6);
+            opacity: 0;
+            transform: translateY(20px) scale(0.9);
+            position: absolute;
+            transition: all 1.5s ease-in-out; 
+            white-space: normal;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .text-msg.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* --- FINAL HEART CONTAINER --- */
+        .final-heart-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            
+            /* Agar responsif dan tidak terpotong di HP */
+            width: 350px; 
+            height: 350px;
+            max-width: 80vw; /* Maksimal 80% lebar layar */
+            max-height: 80vw;
+            
+            opacity: 0;
+            transition: transform 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 1s ease;
+            z-index: 20;
+            
+            /* Penting: Memberi ruang untuk glow agar tidak terpotong */
+            padding: 20px; 
+        }
+
+        .final-heart-container.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* SVG Settings */
+        svg.heart-svg {
+            width: 100%;
+            height: 100%;
+            /* KUNCI AGAR TIDAK TERPOTONG: visible */
+            overflow: visible; 
+            animation: floating 3s ease-in-out infinite alternate;
+        }
+
+        /* --- LOGIKA ANIMASI JALUR (STROKE) --- */
+        /* Kita set panjang garis (dasharray) besar agar bisa dianimasikan */
+        .heart-path {
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 1500; /* Panjang garis */
+            stroke-dashoffset: 1500; /* Disembunyikan dulu */
+        }
+
+        /* 1. LAYER DALAM (Isi Warna) */
+        .heart-fill {
+            fill: url(#gradientFill);
+            opacity: 0; /* Mulai transparan */
+            transform-origin: center;
+            filter: drop-shadow(0 0 15px rgba(255, 64, 129, 0.5));
+        }
+        
+        /* Saat muncul, isi hati fade-in pelan */
+        .final-heart-container.show .heart-fill {
+            animation: fillFadeIn 2s forwards 0.5s, heartbeat 1.5s infinite 4s;
+        }
+
+        /* 2. LAYER BINGKAI LUAR (Outer) */
+        .heart-stroke-outer {
+            stroke: #690020;
+            stroke-width: 15;
+            filter: blur(4px);
+            opacity: 0.6;
+        }
+        /* Muncul urutan ke-1 */
+        .final-heart-container.show .heart-stroke-outer {
+            animation: drawLine 2s cubic-bezier(0.4, 0, 0.2, 1) forwards 0.5s; 
+        }
+
+        /* 3. LAYER BINGKAI TENGAH (Middle - Neon) */
+        .heart-stroke-middle {
+            stroke: #ff0055;
+            stroke-width: 6;
+            filter: drop-shadow(0 0 8px #ff0055);
+        }
+        /* Muncul urutan ke-2 (Setelah Outer selesai) */
+        .final-heart-container.show .heart-stroke-middle {
+            animation: drawLine 2s cubic-bezier(0.4, 0, 0.2, 1) forwards 2.5s, 
+                       colorShift 4s infinite alternate 4.5s;
+        }
+
+        /* 4. LAYER BINGKAI DALAM (Inner - Putih Tajam) */
+        .heart-stroke-inner {
+            stroke: #ffffff;
+            stroke-width: 2;
+            filter: drop-shadow(0 0 2px #fff);
+        }
+        /* Muncul urutan ke-3 (Terakhir) */
+        .final-heart-container.show .heart-stroke-inner {
+            animation: drawLine 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 4.5s;
+        }
+
+        /* --- BACKGROUND & START SCREEN --- */
+        .bg-stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 3s infinite;
+        }
+
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s ease;
+            cursor: pointer;
+        }
+
+        .start-text {
+            font-size: 1.5rem;
+            color: #fff;
+            animation: pulseText 2s infinite;
+        }
+
+        /* --- KEYFRAMES --- */
+        
+        /* Animasi Menggambar Garis */
+        @keyframes drawLine {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Fade In Isi Hati */
+        @keyframes fillFadeIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            15% { transform: scale(1.08); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.12); }
+            60% { transform: scale(1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-15px); }
+        }
+        
+        @keyframes colorShift {
+            0% { stroke: #ff0055; filter: drop-shadow(0 0 8px #ff0055); } 
+            50% { stroke: #ff9900; filter: drop-shadow(0 0 8px #ff9900); } 
+            100% { stroke: #00ccff; filter: drop-shadow(0 0 8px #00ccff); }
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+
+        @keyframes pulseText {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Responsive Text */
+        @media (max-width: 768px) {
+            .text-msg { font-size: 2.2rem; }
+        }
